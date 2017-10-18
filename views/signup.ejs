@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>登录</title>
+    <title>注册</title>
 </head>
 
 <body>
 <div id="top">
-    <h3>登录</h3>
-    <form class="form" method="post" action="signin">
+    <h3>注册</h3>
+    <form class="form" method="post" action="signup">
         <div>
             <label for="username">用户名: </label>
             <input id="username" type="text" name="username" placeholder="用户名" pattern=".{3,100}" required>
@@ -19,17 +19,11 @@
         </div>
 
         <div>
-            <input type="submit" value="登录">
+            <input type="submit" value="注册">
         </div>
     </form>
 
-    <div>
-        <a href="/signin/google">Login with Google</a>
-    </div>
 
-    <div>
-        <a href="/signout">Sign Out</a>
-    </div>
 </div>
 </body>
 </html>

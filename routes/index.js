@@ -4,6 +4,7 @@ var db = require('../modules/db.js');
 var passport = require('passport');
 var session = require('../modules/session.js');
 var login = require('../modules/login.js');
+var user = require('../modules/user.js');
 
 /* GET home page. */
 router.get('/test', function(req, res) {
@@ -45,7 +46,21 @@ router.get('/signout', function(req, res){
 });
 
 router.get('/signin', function(req, res) {
-  res.render('signin', {message: "test", success: "login"});
+  res.render('signin');
+});
+
+router.get('/signup', function(req, res) {
+    res.render('signup');
+});
+
+router.post('/signup', function(req, res) {
+    user.add(req, function(err, result){
+       if(err){
+           res.status(500).json({error: err.message});
+       } else {
+           res.send(result);
+       }
+    });
 });
 
 router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
