@@ -16,7 +16,11 @@ router.get('/test', function(req, res) {
 });
 
 router.get('/', login.checkAuth, function(req, res) {
-  res.render('index', { title: 'Hello' });
+    var sign_type = "Local";
+    if (req.query && req.query.sign_type) {
+        sign_type = req.query.sign_type;
+    }
+    res.render('index', {title: 'Hello', sign_type: sign_type});
 });
 
 router.get('/get', function(req,res) {
@@ -45,10 +49,6 @@ router.get('/signout', function(req, res){
     res.send("you're out");
 });
 
-router.get('/signin', function(req, res) {
-  res.render('signin');
-});
-
 router.get('/signup', function(req, res) {
     res.render('signup');
 });
@@ -63,25 +63,26 @@ router.post('/signup', function(req, res) {
     });
 });
 
+router.get('/signin', function(req, res) {
+    res.render('signin');
+});
+
 router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
-    console.log("req.user", req.user);
     session.setSession(req.user.id, res, function () {
         req.session.user = req.user;
-        res.redirect("/");
+        res.redirect("/?sign_type=" + "Local");
     });
 });
 
-router.get('/signin/google', passport.authenticate("google", {scope: ['https://www.googleapis.com/auth/plus.login'] }), function(req, res) {
-    console.log("req.user", req.user);
-    // session.setSession(req.user.id, res, function () {
-    //     req.session.user = req.user;
-    // });
-        res.send("you're in by Google");
-});
+router.get('/signin/google', passport.authenticate("google", {scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
-router.get('/signin/done', passport.authenticate('google', { failureRedirect: '/signin' }), function(req, res) {
-    console.log("ok");
-    res.redirect("/");
+router.get('/signin/google/done', passport.authenticate('google', {session: false, failureRedirect: '/signin' }), function(req, res) {
+    console.log("ok", req.user);
+    console.log("ok", req.session);
+    session.setSession(req.user.id, res, function () {
+        req.session.user = req.user;
+    });
+    res.redirect("/?sign_type=" + "Google");
 });
 
 

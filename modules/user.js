@@ -16,11 +16,33 @@ user.add = function (req, next) {
     }
 };
 
+user.addGoogle = function (profile, next) {
+    if(profile && profile.id) {
+        var pool = global.db;
+        var strsql = "INSERT INTO `user` SET ?";
+        var userObj = getGoogleUserObj(profile);
+        db.sqlExec(pool, strsql, userObj, next);
+    } else {
+        next(new Error("can't retrieve user info from google be empty"));
+    }
+};
+
 function getUserObj(req) {
     var userObj = {};
     userObj.username = req.body.username;
     userObj.password = util.getPasswordHash(req.body.password);
     userObj.email = req.body.email;
+    return userObj;
+}
+
+function getGoogleUserObj(profile) {
+    var userObj = {};
+    userObj.google_id = profile.id;
+    userObj.username = profile.displayName;
+    userObj.password = null;
+    userObj.gender = profile.gender;
+    userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
+    userObj.relationshipStatus = profile._json? profile._json.relationshipStatus : null;
     return userObj;
 }
 

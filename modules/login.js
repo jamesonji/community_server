@@ -3,6 +3,7 @@ var _ = require('../libs/underscore-min.js');
 var util = require('../modules/util');
 var local = require('./local');
 var db = require('./db');
+var user = require('./user.js');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
@@ -25,15 +26,15 @@ login.localLogin = new LocalStrategy({
     passwordField: 'password'
     },
     function(username, password, next){
-    db.getValue("user", "username", username, function (err, user) {
+    db.getValue("user", "username", username, function (err, foundUser) {
         if (err) {
             next(false, err);
-        } else if (!user || _.isEmpty(user)) {
+        } else if (!foundUser || _.isEmpty(foundUser)) {
             next(null, false, new Error("Incorrect username"));
-        } else if (util.getPasswordHash(password) != user.password) {
+        } else if (util.getPasswordHash(password) != foundUser.password) {
             next(null, false, new Error("Incorrect password"));
         } else {
-            next(null, {id: user.id});
+            next(null, {id: foundUser.id});
         }
     });
 });
@@ -41,15 +42,20 @@ login.localLogin = new LocalStrategy({
 login.localGoogle = new GoogleStrategy({
         clientID: GOOGLE_CONSUMER_KEY,
         clientSecret: GOOGLE_CONSUMER_SECRET,
-        callbackURL: "/signin/done"
+        callbackURL: "/signin/google/done"
     },
     function(accessToken, refreshToken, profile, next) {
-        console.log("cp1", GOOGLE_CONSUMER_KEY);
-        console.log("cp2", GOOGLE_CONSUMER_SECRET);
-        console.log("accessToken", accessToken);
-        console.log("refreshToken", refreshToken);
-        console.log("profile", profile);
-        next(null, profile);
+        db.getValue("user", "google_id", profile.id, function (err, foundUser) {
+            if (err) {
+                next(false, err);
+            } else if (!foundUser || _.isEmpty(foundUser)) {
+                user.addGoogle(profile, function(err, result) {
+                    next(err, {id: result.insertId});
+                });
+            } else {
+                next(null, {id: foundUser.id});
+            }
+        });
     }
 );
 
