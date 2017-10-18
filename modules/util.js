@@ -17,16 +17,16 @@ util.getTS = function (datetime) {
     return parseInt(intDateTime / 1000, 10);
 };
 
-util.getToken = function (openId, session_key) {
-    var secret = openId + '_' + session_key;
+util.getPasswordHash = function (password) {
+    var secret = password + '_' + local.app_key;
     var sha = crypto.createHash("sha256");
     return sha.update(secret).digest("hex");
 };
 
-util.getUserId = function (openId) {
-    var secret = openId + "_" + local.wx.secret;
-    var md5 = crypto.createHash("md5");
-    return md5.update(secret).digest("hex");
+util.checkDate = function(ts){
+    var now = util.getTS();
+    var dateDiff = now - ts;
+    return (dateDiff < 86400);
 };
 
 util.checkDate = function(ts){

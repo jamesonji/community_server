@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../modules/db.js');
+var passport = require('passport');
+var session = require('../modules/session.js');
+var login = require('../modules/login.js');
 
 /* GET home page. */
 router.get('/test', function(req, res) {
@@ -11,8 +14,8 @@ router.get('/test', function(req, res) {
   });
 });
 
-router.get('/', function(req, res) {
-  res.render('index', { title: 'Menucraft' });
+router.get('/', login.checkAuth, function(req, res) {
+  res.render('index', { title: 'Hello' });
 });
 
 router.get('/get', function(req,res) {
@@ -34,5 +37,37 @@ router.get('/clear', function(req,res) {
     res.send('OK');
   });
 });
+
+router.get('/signout', function(req, res){
+    req.logout();
+    session.destroy(req, res);
+    res.send("you're out");
+});
+
+router.get('/signin', function(req, res) {
+  res.render('signin', {message: "test", success: "login"});
+});
+
+router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
+    console.log("req.user", req.user);
+    session.setSession(req.user.id, res, function () {
+        req.session.user = req.user;
+        res.redirect("/");
+    });
+});
+
+router.get('/signin/google', passport.authenticate("google", {scope: ['https://www.googleapis.com/auth/plus.login'] }), function(req, res) {
+    console.log("req.user", req.user);
+    // session.setSession(req.user.id, res, function () {
+    //     req.session.user = req.user;
+    // });
+        res.send("you're in by Google");
+});
+
+router.get('/signin/done', passport.authenticate('google', { failureRedirect: '/signin' }), function(req, res) {
+    console.log("ok");
+    res.redirect("/");
+});
+
 
 module.exports = router;

@@ -11,7 +11,7 @@ db.getValue = function (model_name, model_field, fieldValue, next)
         fieldValue = fieldValue.toLowerCase();
     }
     var cache_key = 'model_' + model_name + '_' + model_field + '_' + fieldValue;
-    var strsql = 'SELECT * from ' + model_name + ' where ' + model_field + '=' + pool.escape(fieldValue);
+    var strsql = 'SELECT * from ' + model_name + ' where ' + model_field + '=' + pool.escape(fieldValue) + ' AND deleted_at is NULL';
     cache.get(cache_key, function (err, reply) {
         if (reply) {
             next(null, JSON.parse(reply));
