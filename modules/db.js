@@ -3,15 +3,15 @@ var _ = require('../libs/underscore-min.js');
 
 var db = {};
 
-db.getValue = function (model_name, model_field, fieldValue, next)
+db.getValue = function (model_name, fieldValue, next)
 {
     var pool = global.db;
     var cache = global.cache;
     if(typeof fieldValue == "string"){
         fieldValue = fieldValue.toLowerCase();
     }
-    var cache_key = 'model_' + model_name + '_' + model_field + '_' + fieldValue;
-    var strsql = 'SELECT * from ' + model_name + ' where ' + model_field + '=' + pool.escape(fieldValue) + ' AND deleted_at is NULL';
+    var cache_key = 'model_' + model_name + '_id' + '_' + fieldValue;
+    var strsql = 'SELECT * FROM ' + model_name + ' WHERE id=' + pool.escape(fieldValue) + ' AND deleted_at is NULL';
     cache.get(cache_key, function (err, reply) {
         if (reply) {
             next(null, JSON.parse(reply));

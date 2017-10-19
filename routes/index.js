@@ -68,21 +68,25 @@ router.get('/signin', function(req, res) {
 });
 
 router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
-    session.setSession(req.user.id, res, function () {
-        req.session.user = req.user;
-        res.redirect("/?sign_type=" + "Local");
+    session.setSession(req.user.id, res, function (err, autoObj) {
+        if(err){
+            res.status(500).json({error: err.message});
+        } else {
+            res.send(autoObj);
+        }
     });
 });
 
 router.get('/signin/google', passport.authenticate("google", {scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
 router.get('/signin/google/done', passport.authenticate('google', {session: false, failureRedirect: '/signin' }), function(req, res) {
-    console.log("ok", req.user);
-    console.log("ok", req.session);
-    session.setSession(req.user.id, res, function () {
-        req.session.user = req.user;
+    session.setSession(req.user.id, res, function (err, autoObj) {
+        if(err){
+            res.status(500).json({error: err.message});
+        } else {
+            res.send(autoObj);
+        }
     });
-    res.redirect("/?sign_type=" + "Google");
 });
 
 

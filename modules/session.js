@@ -45,7 +45,7 @@ session.setSession = function setSession(uid, res, next) {
         if (!err)
             cache.expire(cache_key, cookie_options.maxAge);
         if (typeof next != "undefined")
-            next();
+            next(null, {uid: uid, hash: cache_key});
     });
 };
 

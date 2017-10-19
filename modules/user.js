@@ -10,7 +10,9 @@ user.add = function (req, next) {
         var pool = global.db;
         var strsql = "INSERT INTO `user` SET ?";
         var userObj = getUserObj(req);
-        db.sqlExec(pool, strsql, userObj, next);
+        db.sqlExec(pool, strsql, userObj, function(err, result){
+
+        });
     } else {
         next(new Error("username and password cannot be empty"));
     }
@@ -36,9 +38,10 @@ function getUserObj(req) {
 }
 
 function getGoogleUserObj(profile) {
+    var id = profile.id;
     var userObj = {};
-    userObj.google_id = profile.id;
-    userObj.username = profile.displayName;
+    userObj.passports = JSON.stringify({google: {id: id, type: "google", displayName: profile.displayName}});
+    userObj.username = profile.displayName + " Google-" + id.toString();
     userObj.password = null;
     userObj.gender = profile.gender;
     userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
