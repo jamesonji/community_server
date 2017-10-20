@@ -19,7 +19,6 @@ login.checkAuth = function loggedIn(req, res, next) {
     if(req.headers.authObj){
         var cache_key = req.headers.authObj.hash;
         var uid = req.headers.authObj.uid;
-
         if(cache_key){
             cache.get(cache_key, function (err, result) {
                 if(result == uid) {
@@ -37,15 +36,8 @@ login.checkAuth = function loggedIn(req, res, next) {
             next();
         }
     } else {
-        next();
+        res.status(401).json({error: "please signin in first"});
     }
-
-    //
-    // if (req.session && req.session.user) {
-    //     next();
-    // } else {
-    //     res.redirect('/signin');
-    // }
 };
 
 login.localLogin = new LocalStrategy({
