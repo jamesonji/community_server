@@ -52,4 +52,6 @@ public/uploads/
 .idea/workspace.xml
 .idea/
 
+node_modules
+
 dump.rdb

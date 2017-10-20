@@ -10,6 +10,7 @@ var app_config = require('./modules/config.js');
 var passport = require('passport');
 var login = require("./modules/login.js");
 var session = require("./modules/session.js");
+var cors = require('cors');
 
 var app = express();
 
@@ -22,9 +23,23 @@ global.isDevelopment = (env== "development");
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// Set up CORS options
+
+var whitelist = ['http://localhost:3006']
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
