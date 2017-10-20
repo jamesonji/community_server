@@ -25,7 +25,7 @@ app.set('view engine', 'ejs');
 
 // Set up CORS options
 
-var whitelist = ['http://localhost:3006']
+var whitelist = ['http://localhost:3006'];
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -34,7 +34,7 @@ var corsOptions = {
       callback(new Error('Not allowed by CORS'))
     }
   }
-}
+};
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -46,8 +46,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 // app.use(passport.session());
-passport.use(login.localLogin);
-passport.use(login.localGoogle);
+passport.use(login.local);
+passport.use(login.google);
 app.use(function(req, res, next) {
     session.init(req, res, next);
 });

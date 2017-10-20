@@ -40,7 +40,7 @@ login.checkAuth = function loggedIn(req, res, next) {
     }
 };
 
-login.localLogin = new LocalStrategy({
+login.local = new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password'
     },
@@ -71,7 +71,7 @@ login.localLogin = new LocalStrategy({
     }
 );
 
-login.localGoogle = new GoogleStrategy({
+login.google = new GoogleStrategy({
         clientID: GOOGLE_CONSUMER_KEY,
         clientSecret: GOOGLE_CONSUMER_SECRET,
         callbackURL: "/signin/google/done"
