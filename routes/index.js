@@ -16,10 +16,12 @@ router.get('/test', function(req, res) {
 });
 
 router.get('/', login.checkAuth, function(req, res) {
-    var sign_type = "Local";
-    if (req.query && req.query.sign_type) {
-        sign_type = req.query.sign_type;
-    }
+    var sign_type = "Hello";
+    res.render('index', {title: 'Hello', sign_type: sign_type});
+});
+
+router.post('/', login.checkAuth, function(req, res) {
+    var sign_type = "Hello";
     res.render('index', {title: 'Hello', sign_type: sign_type});
 });
 
