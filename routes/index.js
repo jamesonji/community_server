@@ -59,8 +59,16 @@ router.post('/signup', function(req, res) {
     user.add(req, function(err, result){
        if(err){
            res.status(500).json({error: err.message});
+       } else if (result && result.insertId){
+           session.setSession(result.insertId, res, function (err, autoObj) {
+               if(err){
+                   res.status(500).json({error: err.message});
+               } else {
+                   res.send(autoObj);
+               }
+           });
        } else {
-           res.send(result);
+           res.status(500).json({error: "server error unknown"});
        }
     });
 });

@@ -10,9 +10,7 @@ user.add = function (req, next) {
         var pool = global.db;
         var strsql = "INSERT INTO `user` SET ?";
         var userObj = getUserObj(req);
-        db.sqlExec(pool, strsql, userObj, function(err, result){
-
-        });
+        db.sqlExec(pool, strsql, userObj, next);
     } else {
         next(new Error("username and password cannot be empty"));
     }
