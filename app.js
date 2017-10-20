@@ -48,6 +48,8 @@ app.use(passport.initialize());
 // app.use(passport.session());
 passport.use(login.local);
 passport.use(login.google);
+passport.use(login.facebook);
+
 app.use(function(req, res, next) {
     session.init(req, res, next);
 });

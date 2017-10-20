@@ -27,6 +27,17 @@ user.addGoogle = function (profile, next) {
     }
 };
 
+user.addFacebook = function (profile, next) {
+    if(profile && profile.id) {
+        var pool = global.db;
+        var strsql = "INSERT INTO `user` SET ?";
+        var userObj = getFacebookUserObj(profile);
+        db.sqlExec(pool, strsql, userObj, next);
+    } else {
+        next(new Error("can't retrieve user info from google be empty"));
+    }
+};
+
 function getUserObj(req) {
     var userObj = {};
     userObj.username = req.body.username;
@@ -36,14 +47,23 @@ function getUserObj(req) {
 }
 
 function getGoogleUserObj(profile) {
-    var id = profile.id;
     var userObj = {};
-    userObj.passports = JSON.stringify({google: {id: id, type: "google", displayName: profile.displayName}});
-    userObj.username = profile.displayName + " Google-" + id.toString();
+    userObj.passports = JSON.stringify(profile._json);
+    userObj.username = "google-" + profile.id.toString();
     userObj.password = null;
     userObj.gender = profile.gender;
     userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
     userObj.relationshipStatus = profile._json? profile._json.relationshipStatus : null;
+    return userObj;
+}
+
+function getFacebookUserObj(profile) {
+    var userObj = {};
+    userObj.passports = JSON.stringify(profile);
+    userObj.username = "facebook-" + profile.id.toString();
+    userObj.password = null;
+    userObj.gender = profile.gender;
+    userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
     return userObj;
 }
 

@@ -99,5 +99,17 @@ router.get('/signin/google/done', passport.authenticate('google', {session: fals
     });
 });
 
+router.get('/signin/facebook', passport.authenticate('facebook'));
+
+router.get('/signin/facebook/done', passport.authenticate('facebook', {session: false, failureRedirect: '/signin' }), function(req, res) {
+    console.log("cp2", req.user);
+    session.setSession(req.user.id, res, function (err, autoObj) {
+        if(err){
+            res.status(500).json({error: err.message});
+        } else {
+            res.send(autoObj);
+        }
+    });
+});
 
 module.exports = router;

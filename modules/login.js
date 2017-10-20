@@ -8,9 +8,12 @@ var user = require('./user.js');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
 
 const GOOGLE_CONSUMER_KEY = local.GOOGLE_CONSUMER_KEY;
 const GOOGLE_CONSUMER_SECRET = local.GOOGLE_CONSUMER_SECRET;
+const FACEBOOK_APP_ID = local.facebook.id;
+const FACEBOOK_APP_SECRET = local.facebook.secret;
 
 var login = {};
 
@@ -77,7 +80,7 @@ login.google = new GoogleStrategy({
         callbackURL: "/signin/google/done"
     },
     function(accessToken, refreshToken, profile, next) {
-        var searchObj = {google_id: profile.id};
+        var searchObj = {username: "google-" + profile.id.toString()};
         async.waterfall([
                 function (next) {
                     db.getIds("user", searchObj, next);
@@ -94,6 +97,38 @@ login.google = new GoogleStrategy({
                     next(false, err);
                 } else if (!foundUser || _.isEmpty(foundUser)) {
                     user.addGoogle(profile, function (err, result) {
+                        next(err, {id: result.insertId});
+                    });
+                } else {
+                    next(null, {id: foundUser.id});
+                }
+            });
+    }
+);
+
+login.facebook = new FacebookStrategy({
+        clientID: FACEBOOK_APP_ID,
+        clientSecret: FACEBOOK_APP_SECRET,
+        callbackURL: "/signin/facebook/done"
+    },
+    function(accessToken, refreshToken, profile, next) {
+        var searchObj = {username: "facebook-" + profile.id.toString()};
+        async.waterfall([
+                function (next) {
+                    db.getIds("user", searchObj, next);
+                },
+                function (ids, next) {
+                    if (ids && ids.length) {
+                        db.getValue("user", ids[0], next);
+                    } else {
+                        next();
+                    }
+                }],
+            function (err, foundUser) {
+                if (err) {
+                    next(false, err);
+                } else if (!foundUser || _.isEmpty(foundUser)) {
+                    user.addFacebook(profile, function (err, result) {
                         next(err, {id: result.insertId});
                     });
                 } else {
