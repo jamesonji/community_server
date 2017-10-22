@@ -8,11 +8,13 @@ var user = require('../modules/user.js');
 
 /* GET home page. */
 router.get('/test', function(req, res) {
-  var model_name = "dishes";
-  var where_conditions = {category: "B"};
-  db.getIds(model_name, where_conditions, function (err, reply) {
-    res.send(reply);
-  });
+    var tokenObj = {
+        access_token: "EAABwLLGrjPoBANdXluGsowXCDU3OGOAy4tNY1juIfr83TbfYCXMQI9bgadpkVLeZBtkSYD9jL5Yp8P5WOY39PBtIftG636gi9bgQaYcfDf24MsM39oazRIX1UZCfARKCrMtrO4zcqgW8sWyovjSZBMrtM3uf6z42KJaA9QmeZBGzoXMYEv3KTNk0VWkQKkLnXmjPRm7ZCYwZDZD",
+        userID: "10210770000710511"
+    };
+    login.facebookCheck(tokenObj, function (err, result) {
+        res.send(result);
+    });
 });
 
 router.get('/', login.checkAuth, function(req, res) {
@@ -74,7 +76,8 @@ router.post('/signup', function(req, res) {
 });
 
 router.get('/signin', function(req, res) {
-    res.render('signin');
+    var local = require("../modules/local.js");
+    res.render('signin', {facebook_app_id:local.facebook.id});
 });
 
 router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
@@ -97,6 +100,10 @@ router.get('/signin/google/done', passport.authenticate('google', {session: fals
             res.send(autoObj);
         }
     });
+});
+
+router.get('/signin/fb/test', function(req, res){
+
 });
 
 router.get('/signin/facebook', passport.authenticate('facebook'));

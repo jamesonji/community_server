@@ -9,6 +9,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
+var request = require('request');
 
 const GOOGLE_CONSUMER_KEY = local.GOOGLE_CONSUMER_KEY;
 const GOOGLE_CONSUMER_SECRET = local.GOOGLE_CONSUMER_SECRET;
@@ -137,6 +138,25 @@ login.facebook = new FacebookStrategy({
             });
     }
 );
+
+login.facebookCheck = function(tokenObj, next){
+    var fields = ["name", "id", "gender"];
+    var qs = {access_token: tokenObj.access_token, fields: fields.join(',')};
+    var options = {
+        // url: "https://graph.facebook.com/v2.10/" + tokenObj.userID,
+        url: "https://graph.facebook.com/me",
+        qs: qs
+    };
+    request.get(options, function (err, response, body) {
+        if (err){
+            console.log("err", err);
+            next(err);
+        }else{
+            console.log("body", body);
+            next(null, body);
+        }
+    });
+};
 
 passport.serializeUser(function(user, done) {
     done(null, user);
