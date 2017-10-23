@@ -24,8 +24,12 @@
     </form>
 
     <div>
-        <a href="/signin/google">Login with Google</a>
+        <a href="/signin/facebook">Login with Facebook</a>
         <button onclick="getFacebookStatus()">Facebook check</button>
+    </div>
+
+    <div>
+        <a href="/signin/google">Login with Google</a>
     </div>
 
     <div>
@@ -53,11 +57,14 @@
     }(document, 'script', 'facebook-jssdk'));
 
     function getFacebookStatus(){
-        FB.getLoginStatus(function(response) {
-            if (response.status === 'connected') {
-                console.log(response.authResponse);
-            }
-        });
+//        FB.getLoginStatus(function(response) {
+//            if (response.status === 'connected') {
+//                console.log(response.authResponse);
+//            }
+//        });
+        FB.login(function(response) {
+            console.log(response);
+        }, {scope: 'email'});
     }
 </script>
 

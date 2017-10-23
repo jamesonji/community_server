@@ -6,15 +6,11 @@ var local = require('./local');
 var db = require('./db');
 var user = require('./user.js');
 var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-var FacebookStrategy = require('passport-facebook').Strategy;
 var request = require('request');
 
 const GOOGLE_CONSUMER_KEY = local.GOOGLE_CONSUMER_KEY;
 const GOOGLE_CONSUMER_SECRET = local.GOOGLE_CONSUMER_SECRET;
-const FACEBOOK_APP_ID = local.facebook.id;
-const FACEBOOK_APP_SECRET = local.facebook.secret;
 
 var login = {};
 
@@ -44,18 +40,15 @@ login.checkAuth = function loggedIn(req, res, next) {
     }
 };
 
-login.local = new LocalStrategy({
-    usernameField: 'username',
-    passwordField: 'password'
-    },
-    function(username, password, next) {
+login.local = function(username, password, next) {
+    if(username && password){
         var searchObj = {username: username};
         async.waterfall([
                 function (next) {
                     db.getIds("user", searchObj, next);
                 },
                 function (ids, next) {
-                    if(ids && ids.length) {
+                    if (ids && ids.length) {
                         db.getValue("user", ids[0], next);
                     } else {
                         next();
@@ -63,17 +56,19 @@ login.local = new LocalStrategy({
                 }],
             function (err, foundUser) {
                 if (err) {
-                    next(false, err);
+                    next(err);
                 } else if (!foundUser || _.isEmpty(foundUser)) {
-                    next(null, false, new Error("Incorrect username"));
+                    next(new Error("Incorrect username"));
                 } else if (util.getPasswordHash(password) != foundUser.password) {
-                    next(null, false, new Error("Incorrect password"));
+                    next(new Error("Incorrect password"));
                 } else {
                     next(null, {id: foundUser.id});
                 }
             });
+    } else {
+        next(new Error("username and password is needed"));
     }
-);
+};
 
 login.google = new GoogleStrategy({
         clientID: GOOGLE_CONSUMER_KEY,
@@ -81,6 +76,7 @@ login.google = new GoogleStrategy({
         callbackURL: "/signin/google/done"
     },
     function(accessToken, refreshToken, profile, next) {
+        console.log("accessToken", accessToken);
         var searchObj = {username: "google-" + profile.id.toString()};
         async.waterfall([
                 function (next) {
@@ -107,56 +103,63 @@ login.google = new GoogleStrategy({
     }
 );
 
-login.facebook = new FacebookStrategy({
-        clientID: FACEBOOK_APP_ID,
-        clientSecret: FACEBOOK_APP_SECRET,
-        callbackURL: "/signin/facebook/done"
-    },
-    function(accessToken, refreshToken, profile, next) {
-        var searchObj = {username: "facebook-" + profile.id.toString()};
-        async.waterfall([
-                function (next) {
+login.facebook = function(tokenObj, next) {
+    var profile = {};
+    async.waterfall([
+            async.apply(facebookCheck, tokenObj),
+            function (facebookUser, next) {
+                facebookUser = util.parseJSON(facebookUser);
+                if (facebookUser && !_.isEmpty(facebookUser)) {
+                    profile = facebookUser;
+                    console.log("profile", profile);
+                    var searchObj = {username: "facebook-" + profile.id.toString()};
                     db.getIds("user", searchObj, next);
-                },
-                function (ids, next) {
-                    if (ids && ids.length) {
-                        db.getValue("user", ids[0], next);
-                    } else {
-                        next();
-                    }
-                }],
-            function (err, foundUser) {
-                if (err) {
-                    next(false, err);
-                } else if (!foundUser || _.isEmpty(foundUser)) {
-                    user.addFacebook(profile, function (err, result) {
-                        next(err, {id: result.insertId});
-                    });
                 } else {
-                    next(null, {id: foundUser.id});
+                    next(new Error("login Error"));
                 }
-            });
-    }
-);
-
-login.facebookCheck = function(tokenObj, next){
-    var fields = ["name", "id", "gender"];
-    var qs = {access_token: tokenObj.access_token, fields: fields.join(',')};
-    var options = {
-        // url: "https://graph.facebook.com/v2.10/" + tokenObj.userID,
-        url: "https://graph.facebook.com/me",
-        qs: qs
-    };
-    request.get(options, function (err, response, body) {
-        if (err){
-            console.log("err", err);
-            next(err);
-        }else{
-            console.log("body", body);
-            next(null, body);
-        }
-    });
+            },
+            function (ids, next) {
+                if (ids && ids.length) {
+                    db.getValue("user", ids[0], next);
+                } else {
+                    next();
+                }
+            }],
+        function (err, foundUser) {
+            if (err) {
+                next(false, err);
+            } else if (!foundUser || _.isEmpty(foundUser)) {
+                user.addFacebook(profile, function (err, result) {
+                    next(err, {id: result.insertId});
+                });
+            } else {
+                next(null, {id: foundUser.id});
+            }
+        });
 };
+
+function facebookCheck(tokenObj, next){
+    if(tokenObj && !_.isEmpty(tokenObj)){
+        var fields = ["name", "id", "gender", "cover", "email", "relationship_status"];
+        var qs = {access_token: tokenObj.access_token, fields: fields.join(',')};
+        var options = {
+            url: "https://graph.facebook.com/v2.10/" + tokenObj.userID,
+            // url: "https://graph.facebook.com/me",
+            qs: qs
+        };
+        request.get(options, function (err, response, body) {
+            if (err){
+                // console.log("err", err);
+                next(err);
+            }else{
+                // console.log("body", body);
+                next(null, body);
+            }
+        });
+    } else {
+        next(new Error("token object is needed"));
+    }
+}
 
 passport.serializeUser(function(user, done) {
     done(null, user);

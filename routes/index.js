@@ -5,6 +5,7 @@ var passport = require('passport');
 var session = require('../modules/session.js');
 var login = require('../modules/login.js');
 var user = require('../modules/user.js');
+var util = require('../modules/util.js');
 
 /* GET home page. */
 router.get('/test', function(req, res) {
@@ -12,7 +13,7 @@ router.get('/test', function(req, res) {
         access_token: "EAABwLLGrjPoBANdXluGsowXCDU3OGOAy4tNY1juIfr83TbfYCXMQI9bgadpkVLeZBtkSYD9jL5Yp8P5WOY39PBtIftG636gi9bgQaYcfDf24MsM39oazRIX1UZCfARKCrMtrO4zcqgW8sWyovjSZBMrtM3uf6z42KJaA9QmeZBGzoXMYEv3KTNk0VWkQKkLnXmjPRm7ZCYwZDZD",
         userID: "10210770000710511"
     };
-    login.facebookCheck(tokenObj, function (err, result) {
+    login.facebook(tokenObj, function (err, result) {
         res.send(result);
     });
 });
@@ -75,17 +76,38 @@ router.post('/signup', function(req, res) {
     });
 });
 
+router.get('/me', login.checkAuth, function(req, res) {
+    var uid = util.parseJSON(req.headers.authObj).uid;
+    db.getValue("user", uid, function(err, result){
+        if(err) {
+            res.status(500).json({error: err.message});
+        } else {
+            res.send(result);
+        }
+    });
+});
+
 router.get('/signin', function(req, res) {
     var local = require("../modules/local.js");
     res.render('signin', {facebook_app_id:local.facebook.id});
 });
 
-router.post('/signin', passport.authenticate("local", {session: false}), function(req, res) {
-    session.setSession(req.user.id, res, function (err, autoObj) {
-        if(err){
+router.post('/signin', function(req, res) {
+    var username = req.body.username;
+    var password = req.body.password;
+    login.local(username, password, function (err, result) {
+        if(err) {
             res.status(500).json({error: err.message});
+        } else if(result && result.id) {
+            session.setSession(result.id, res, function (err, autoObj) {
+                if(err){
+                    res.status(500).json({error: err.message});
+                } else {
+                    res.send(autoObj);
+                }
+            });
         } else {
-            res.send(autoObj);
+            res.status(500).json({error: "Error Unknown"});
         }
     });
 });
@@ -102,19 +124,21 @@ router.get('/signin/google/done', passport.authenticate('google', {session: fals
     });
 });
 
-router.get('/signin/fb/test', function(req, res){
-
-});
-
-router.get('/signin/facebook', passport.authenticate('facebook'));
-
-router.get('/signin/facebook/done', passport.authenticate('facebook', {session: false, failureRedirect: '/signin' }), function(req, res) {
-    console.log("cp2", req.user);
-    session.setSession(req.user.id, res, function (err, autoObj) {
-        if(err){
+router.post('/signin/facebook', function(req, res){
+    var tokenObj = req.body.authObj;
+    login.facebook(tokenObj, function (err, result) {
+        if(err) {
             res.status(500).json({error: err.message});
+        } else if(result && result.id) {
+            session.setSession(result.id, res, function (err, autoObj) {
+                if(err){
+                    res.status(500).json({error: err.message});
+                } else {
+                    res.send(autoObj);
+                }
+            });
         } else {
-            res.send(autoObj);
+            res.status(500).json({error: "Error Unknown"});
         }
     });
 });

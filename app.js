@@ -25,10 +25,10 @@ app.set('view engine', 'ejs');
 
 // Set up CORS options
 
-var whitelist = ['http://localhost:3006', 'http://localhost:3000'];
+var whitelist = ['http://localhost:3006', 'http://localhost:3000', 'chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm'];
 var corsOptions = {
   origin: function (origin, callback) {
-    if ((whitelist.indexOf(origin) !== -1) || !origin){
+      if ((whitelist.indexOf(origin) !== -1) || !origin){
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
@@ -45,10 +45,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
-// app.use(passport.session());
-passport.use(login.local);
 passport.use(login.google);
-passport.use(login.facebook);
 
 app.use(function(req, res, next) {
     session.init(req, res, next);

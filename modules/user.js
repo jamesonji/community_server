@@ -63,7 +63,8 @@ function getFacebookUserObj(profile) {
     userObj.username = "facebook-" + profile.id.toString();
     userObj.password = null;
     userObj.gender = profile.gender;
-    userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
+    userObj.email = profile.email? profile.email : null;
+    userObj.relationshipStatus = profile.relationship_status? profile.relationship_status : null;
     return userObj;
 }
 
