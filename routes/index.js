@@ -87,7 +87,7 @@ router.get('/me', login.checkAuth, function(req, res) {
         if(err) {
             res.status(500).json({error: err.message});
         } else {
-            if(result.passports){
+            if(result && result.passports){
                 result.passports = util.parseJSON(result.passports);
             }
             res.send(result);
