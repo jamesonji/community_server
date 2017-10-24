@@ -17,8 +17,9 @@ var login = {};
 login.checkAuth = function loggedIn(req, res, next) {
     var cache = global.cache;
     if(req.headers.authObj){
-        var cache_key = req.headers.authObj.hash;
-        var uid = req.headers.authObj.uid;
+        var authObj = util.parseJSON(req.headers.authObj);
+        var cache_key =  authObj.hash;
+        var uid = authObj.uid;
         if(cache_key){
             cache.get(cache_key, function (err, result) {
                 if(result == uid) {
@@ -29,7 +30,7 @@ login.checkAuth = function loggedIn(req, res, next) {
                         next();
                     }
                 }else{
-                    res.status(401).json({error: "token expired, please signin in again"});
+                    res.status(401).json({error: "token is invalid, please signin in again"});
                 }
             });
         }else{
