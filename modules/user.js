@@ -63,7 +63,7 @@ function getFacebookUserObj(profile) {
     userObj.username = "facebook-" + profile.id.toString();
     userObj.password = null;
     userObj.gender = profile.gender;
-    userObj.relationshipStatus = profile.relationship_status? profile.relationship_status : null;
+    userObj.relationshipStatus = profile.relationship_status;
     return userObj;
 }
 
