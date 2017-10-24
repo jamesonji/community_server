@@ -29,11 +29,11 @@ login.checkAuth = function loggedIn(req, res, next) {
                         next();
                     }
                 }else{
-                    next();
+                    res.status(401).json({error: "token expired, please signin in again"});
                 }
             });
         }else{
-            next();
+            res.status(401).json({error: "token is empty, please signin in first"});
         }
     } else {
         res.status(401).json({error: "please signin in first"});
