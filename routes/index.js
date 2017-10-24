@@ -8,6 +8,11 @@ var user = require('../modules/user.js');
 var util = require('../modules/util.js');
 
 /* GET home page. */
+router.use(function(req, res, next){
+    req.headers.authObj = req.headers.authObj || req.headers.authobj;
+    next();
+});
+
 router.get('/test', function(req, res) {
     var tokenObj = {
         access_token: "EAABwLLGrjPoBANdXluGsowXCDU3OGOAy4tNY1juIfr83TbfYCXMQI9bgadpkVLeZBtkSYD9jL5Yp8P5WOY39PBtIftG636gi9bgQaYcfDf24MsM39oazRIX1UZCfARKCrMtrO4zcqgW8sWyovjSZBMrtM3uf6z42KJaA9QmeZBGzoXMYEv3KTNk0VWkQKkLnXmjPRm7ZCYwZDZD",
