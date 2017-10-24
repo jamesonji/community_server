@@ -130,7 +130,11 @@ login.facebook = function(tokenObj, next) {
                 next(false, err);
             } else if (!foundUser || _.isEmpty(foundUser)) {
                 user.addFacebook(profile, function (err, result) {
-                    next(err, {id: result.insertId});
+                    if(err){
+                        next(err);
+                    } else {
+                        next(null, {id: result.insertId});
+                    }
                 });
             } else {
                 next(null, {id: foundUser.id});
