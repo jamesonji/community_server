@@ -17,13 +17,13 @@ user.add = function (req, next) {
 };
 
 user.addGoogle = function (profile, next) {
-    if(profile && profile.id) {
+    if(profile && profile.sub) {
         var pool = global.db;
         var strsql = "INSERT INTO `user` SET ?";
         var userObj = getGoogleUserObj(profile);
         db.sqlExec(pool, strsql, userObj, next);
     } else {
-        next(new Error("can't retrieve user info from google be empty"));
+        next(new Error("user info from google is empty"));
     }
 };
 
@@ -34,7 +34,7 @@ user.addFacebook = function (profile, next) {
         var userObj = getFacebookUserObj(profile);
         db.sqlExec(pool, strsql, userObj, next);
     } else {
-        next(new Error("can't retrieve user info from google be empty"));
+        next(new Error("user info from facebook be empty"));
     }
 };
 
@@ -48,12 +48,12 @@ function getUserObj(req) {
 
 function getGoogleUserObj(profile) {
     var userObj = {};
-    userObj.passports = JSON.stringify(profile._json);
-    userObj.username = "google-" + profile.id.toString();
+    userObj.passports = JSON.stringify(profile);
+    userObj.username = "google-" + profile.sub.toString();
     userObj.password = null;
     userObj.gender = profile.gender;
-    userObj.avatar = profile._json? (profile._json.image? profile._json.image.url: null) : null;
-    userObj.relationshipStatus = profile._json? profile._json.relationshipStatus : null;
+    userObj.avatar = profile.picture;
+    userObj.relationshipStatus = profile.relationshipStatus;
     return userObj;
 }
 

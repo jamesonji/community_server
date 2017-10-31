@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var app_env = require('./modules/set_env.js');
 var app_config = require('./modules/config.js');
-var passport = require('passport');
 var login = require("./modules/login.js");
 var session = require("./modules/session.js");
 var cors = require('cors');
@@ -44,8 +43,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(passport.initialize());
-passport.use(login.google);
 
 app.use(function(req, res, next) {
     session.init(req, res, next);

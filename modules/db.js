@@ -45,7 +45,6 @@ db.getValue = function (model_name, fieldValue, next)
 db.getIds = function (model_name, where_conditions, next) {
     var pool = global.db;
     var strsql = "SELECT id FROM " + model_name + " WHERE deleted_at is null AND ?";
-    console.log(strsql);
     db.sqlExec(pool, strsql, where_conditions, function (err, records) {
         if (err) {
             next(err);

@@ -5,12 +5,8 @@ var async = require('async');
 var local = require('./local');
 var db = require('./db');
 var user = require('./user.js');
-var passport = require('passport');
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var request = require('request');
-
-const GOOGLE_CONSUMER_KEY = local.GOOGLE_CONSUMER_KEY;
-const GOOGLE_CONSUMER_SECRET = local.GOOGLE_CONSUMER_SECRET;
+var GoogleAuth = require('google-auth-library');
 
 var login = {};
 
@@ -71,38 +67,43 @@ login.local = function(username, password, next) {
     }
 };
 
-login.google = new GoogleStrategy({
-        clientID: GOOGLE_CONSUMER_KEY,
-        clientSecret: GOOGLE_CONSUMER_SECRET,
-        callbackURL: "/signin/google/done"
-    },
-    function(accessToken, refreshToken, profile, next) {
-        console.log("accessToken", accessToken);
-        var searchObj = {username: "google-" + profile.id.toString()};
-        async.waterfall([
-                function (next) {
+login.google = function(tokenObj, next) {
+    var profile = {};
+    async.waterfall([
+            async.apply(googleCheck, tokenObj),
+            function (googleUser, next) {
+                if (googleUser && !_.isEmpty(googleUser)) {
+                    profile = googleUser;
+                    console.log("googleUser", profile);
+                    var searchObj = {username: "google-" + profile.sub.toString()};
                     db.getIds("user", searchObj, next);
-                },
-                function (ids, next) {
-                    if (ids && ids.length) {
-                        db.getValue("user", ids[0], next);
-                    } else {
-                        next();
-                    }
-                }],
-            function (err, foundUser) {
-                if (err) {
-                    next(false, err);
-                } else if (!foundUser || _.isEmpty(foundUser)) {
-                    user.addGoogle(profile, function (err, result) {
-                        next(err, {id: result.insertId});
-                    });
                 } else {
-                    next(null, {id: foundUser.id});
+                    next(new Error("login Error"));
                 }
-            });
-    }
-);
+            },
+            function (ids, next) {
+                if (ids && ids.length) {
+                    db.getValue("user", ids[0], next);
+                } else {
+                    next();
+                }
+            }],
+        function (err, foundUser) {
+            if (err) {
+                next(err);
+            } else if (!foundUser || _.isEmpty(foundUser)) {
+                user.addGoogle(profile, function (err, result) {
+                    if(err){
+                        next(err);
+                    } else {
+                        next(null, {id: result.insertId});
+                    }
+                });
+            } else {
+                next(null, {id: foundUser.id});
+            }
+        });
+};
 
 login.facebook = function(tokenObj, next) {
     var profile = {};
@@ -128,7 +129,7 @@ login.facebook = function(tokenObj, next) {
             }],
         function (err, foundUser) {
             if (err) {
-                next(false, err);
+                next(err);
             } else if (!foundUser || _.isEmpty(foundUser)) {
                 user.addFacebook(profile, function (err, result) {
                     if(err){
@@ -166,12 +167,21 @@ function facebookCheck(tokenObj, next){
     }
 }
 
-passport.serializeUser(function(user, done) {
-    done(null, user);
-});
-
-passport.deserializeUser(function(user, done) {
-    done(null, user);
-});
+function googleCheck(tokenObj, next) {
+    if(tokenObj && !_.isEmpty(tokenObj)) {
+        var auth = new GoogleAuth;
+        var client = new auth.OAuth2(local.google.id, '', '');
+        client.verifyIdToken(tokenObj.id_token, local.google.id, function (err, login) {
+            if (err) {
+                next(err);
+            } else {
+                var payload = login.getPayload();
+                next(null, payload);
+            }
+        });
+    } else {
+        next(new Error("token object is needed"));
+    }
+}
 
 module.exports = login;
